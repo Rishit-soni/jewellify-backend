@@ -1,0 +1,24 @@
+# TODO List for Jewellify Backend Implementation
+
+- [x] Update package.json to add express-validator and nodemailer
+- [x] Update models/user.js to include email and role fields
+- [x] Create models/Customer.js
+- [x] Create models/Order.js
+- [x] Create models/LedgerEntry.js
+- [x] Create middlewares/auth.js (JWT verification)
+- [x] Create middlewares/upload.js (Multer for images)
+- [x] Create controllers/auth.controller.js (login/register)
+- [x] Create controllers/items.controller.js (CRUD with search/filter)
+- [x] Create controllers/customers.controller.js (CRUD)
+- [x] Create controllers/orders.controller.js (CRUD with status updates)
+- [x] Create controllers/quotations.controller.js (generate PDF)
+- [x] Create controllers/dashboard.controller.js (summary data)
+- [x] Create routes/auth.routes.js
+- [x] Create routes/customers.routes.js
+- [x] Create routes/orders.routes.js
+- [x] Create routes/quotations.routes.js
+- [x] Create routes/dashboard.routes.js
+- [x] Update routes/Item.routes.js to use controller and add missing methods
+- [x] Update app.js to include all routes, auth middleware, and static uploads
+- [x] Run npm install to install new dependencies
+- [x] Test server startup and basic endpoints
