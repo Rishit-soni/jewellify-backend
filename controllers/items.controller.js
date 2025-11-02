@@ -12,7 +12,7 @@ exports.getAllItems = async (req, res) => {
       page = 1,
       limit = 10,
     } = req.query;
-    let query = {};
+    let query = { tenantId: req.tenantId };
 
     if (search) {
       query.$or = [
@@ -54,7 +54,7 @@ exports.getAllItems = async (req, res) => {
 
 exports.getItemById = async (req, res) => {
   try {
-    const item = await Item.findById(req.params.id);
+    const item = await Item.findOne({ _id: req.params.id, tenantId: req.tenantId });
     if (!item) {
       return res.status(404).json({ message: "Item not found" });
     }
@@ -80,7 +80,10 @@ exports.createItem = [
     }
 
     try {
-      const existingItem = await Item.findOne({ itemCode: req.body.itemCode });
+      const existingItem = await Item.findOne({ 
+        itemCode: req.body.itemCode, 
+        tenantId: req.tenantId 
+      });
       if (existingItem) {
         return res.status(400).json({ message: "Item code already exists" });
       }
@@ -127,7 +130,7 @@ exports.updateItem = [
     }
 
     try {
-      const item = await Item.findById(req.params.id);
+      const item = await Item.findOne({ _id: req.params.id, tenantId: req.tenantId });
       if (!item) {
         return res.status(404).json({ message: "Item not found" });
       }
@@ -136,14 +139,15 @@ exports.updateItem = [
       if (req.body.itemCode && req.body.itemCode !== item.itemCode) {
         const existingItem = await Item.findOne({
           itemCode: req.body.itemCode,
+          tenantId: req.tenantId,
         });
         if (existingItem) {
           return res.status(400).json({ message: "Item code already exists" });
         }
       }
 
-      const updatedItem = await Item.findByIdAndUpdate(
-        req.params.id,
+      const updatedItem = await Item.findOneAndUpdate(
+        { _id: req.params.id, tenantId: req.tenantId },
         {
           ...req.body,
           images: req.files
@@ -163,7 +167,7 @@ exports.updateItem = [
 
 exports.deleteItem = async (req, res) => {
   try {
-    const item = await Item.findByIdAndDelete(req.params.id);
+    const item = await Item.findOneAndDelete({ _id: req.params.id, tenantId: req.tenantId });
     if (!item) {
       return res.status(404).json({ message: "Item not found" });
     }

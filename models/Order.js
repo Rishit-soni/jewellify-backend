@@ -3,6 +3,11 @@ const mongoose = require("mongoose");
 const orderSchema = new mongoose.Schema(
   {
     _id: mongoose.Schema.Types.ObjectId,
+    tenantId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Tenant",
+      required: true,
+    },
     customerId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Customer",
@@ -32,5 +37,7 @@ const orderSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+orderSchema.index({ tenantId: 1, customerId: 1 });
 
 module.exports = mongoose.model("Order", orderSchema);

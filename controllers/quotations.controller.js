@@ -29,7 +29,7 @@ exports.generateQuotation = [
       let customer = null;
 
       if (customerId) {
-        customer = await Customer.findById(customerId);
+        customer = await Customer.findOne({ _id: customerId, tenantId: req.tenantId });
         if (!customer) {
           return res.status(404).json({ message: "Customer not found" });
         }
@@ -38,7 +38,7 @@ exports.generateQuotation = [
       // Validate items exist
       const quotationItems = [];
       for (const quoteItem of items) {
-        const item = await Item.findOne({ itemCode: quoteItem.itemCode });
+        const item = await Item.findOne({ itemCode: quoteItem.itemCode, tenantId: req.tenantId });
         if (!item) {
           return res
             .status(400)

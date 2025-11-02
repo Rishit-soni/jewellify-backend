@@ -3,7 +3,12 @@ const mongoose = require("mongoose");
 const itemSchema = new mongoose.Schema(
   {
     _id: mongoose.Schema.Types.ObjectId,
-    itemCode: { type: String, required: true, unique: true },
+    tenantId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Tenant",
+      required: true,
+    },
+    itemCode: { type: String, required: true },
     name: { type: String, required: true },
     description: String,
     note: String,
@@ -17,5 +22,7 @@ const itemSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+itemSchema.index({ tenantId: 1, itemCode: 1 }, { unique: true });
 
 module.exports = mongoose.model("Item", itemSchema);

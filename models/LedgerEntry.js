@@ -3,6 +3,11 @@ const mongoose = require("mongoose");
 const ledgerEntrySchema = new mongoose.Schema(
   {
     _id: mongoose.Schema.Types.ObjectId,
+    tenantId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Tenant",
+      required: true,
+    },
     customerId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Customer",
@@ -16,5 +21,7 @@ const ledgerEntrySchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+ledgerEntrySchema.index({ tenantId: 1, customerId: 1 });
 
 module.exports = mongoose.model("LedgerEntry", ledgerEntrySchema);

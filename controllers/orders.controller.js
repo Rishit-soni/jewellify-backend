@@ -5,7 +5,7 @@ const { body, validationResult } = require("express-validator");
 
 exports.getAllOrders = async (req, res) => {
   try {
-    const orders = await Order.find()
+    const orders = await Order.find({ tenantId: req.tenantId })
       .populate("customerId")
       .sort({ createdAt: -1 });
     res.json(orders);
@@ -17,7 +17,7 @@ exports.getAllOrders = async (req, res) => {
 
 exports.getOrderById = async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id).populate("customerId");
+    const order = await Order.findOne({ _id: req.params.id, tenantId: req.tenantId }).populate("customerId");
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
     }
@@ -56,7 +56,7 @@ exports.createOrder = [
     try {
       // Validate items exist and have sufficient stock
       for (const orderItem of req.body.items) {
-        const item = await Item.findOne({ itemCode: orderItem.itemCode });
+        const item = await Item.findOne({ itemCode: orderItem.itemCode, tenantId: req.tenantId });
         if (!item) {
           return res
             .status(400)
@@ -79,7 +79,7 @@ exports.createOrder = [
       // Update item stock quantities
       for (const orderItem of req.body.items) {
         await Item.findOneAndUpdate(
-          { itemCode: orderItem.itemCode },
+          { itemCode: orderItem.itemCode, tenantId: req.tenantId },
           { $inc: { stockQty: -orderItem.qty } }
         );
       }
@@ -103,8 +103,8 @@ exports.updateOrderStatus = [
     }
 
     try {
-      const order = await Order.findByIdAndUpdate(
-        req.params.id,
+      const order = await Order.findOneAndUpdate(
+        { _id: req.params.id, tenantId: req.tenantId },
         { status: req.body.status },
         { new: true }
       ).populate("customerId");

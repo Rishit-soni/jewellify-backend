@@ -4,7 +4,7 @@ const { body, validationResult } = require("express-validator");
 
 exports.getAllCustomers = async (req, res) => {
   try {
-    const customers = await Customer.find().sort({ createdAt: -1 });
+    const customers = await Customer.find({ tenantId: req.tenantId }).sort({ createdAt: -1 });
     res.json(customers);
   } catch (error) {
     console.error("Error fetching customers:", error);
@@ -14,7 +14,7 @@ exports.getAllCustomers = async (req, res) => {
 
 exports.getCustomerById = async (req, res) => {
   try {
-    const customer = await Customer.findById(req.params.id);
+    const customer = await Customer.findOne({ _id: req.params.id, tenantId: req.tenantId });
     if (!customer) {
       return res.status(404).json({ message: "Customer not found" });
     }
@@ -63,8 +63,8 @@ exports.updateCustomer = [
     }
 
     try {
-      const customer = await Customer.findByIdAndUpdate(
-        req.params.id,
+      const customer = await Customer.findOneAndUpdate(
+        { _id: req.params.id, tenantId: req.tenantId },
         req.body,
         {
           new: true,
@@ -83,7 +83,7 @@ exports.updateCustomer = [
 
 exports.deleteCustomer = async (req, res) => {
   try {
-    const customer = await Customer.findByIdAndDelete(req.params.id);
+    const customer = await Customer.findOneAndDelete({ _id: req.params.id, tenantId: req.tenantId });
     if (!customer) {
       return res.status(404).json({ message: "Customer not found" });
     }

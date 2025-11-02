@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "Jewellify Backend API",
-    "description": "Complete Postman collection for Jewellify Jewelry Inventory & Billing System",
+    "name": "Jewellify Backend API - Multi-Tenant",
+    "description": "Complete Postman collection for Jewellify Jewelry Inventory & Billing System with Multi-Tenant Support",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -12,6 +12,11 @@
     },
     {
       "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "tenant_id",
       "value": "",
       "type": "string"
     },
@@ -41,7 +46,24 @@
       "name": "Authentication",
       "item": [
         {
-          "name": "Register User - Success",
+          "name": "Register Tenant 1 (Store 1)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.tenant && jsonData.tenant.id) {",
+                  "    pm.collectionVariables.set(\"tenant_id\", jsonData.tenant.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -52,7 +74,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"userName\": \"admin\",\n  \"email\": \"admin@jewellify.com\",\n  \"password\": \"password123\",\n  \"role\": \"Admin\"\n}"
+              "raw": "{\n  \"userName\": \"Admin User\",\n  \"email\": \"admin@store1.com\",\n  \"password\": \"password123\",\n  \"role\": \"Admin\",\n  \"businessName\": \"Golden Jewels Store\",\n  \"ownerName\": \"John Doe\",\n  \"phone\": \"9876543210\",\n  \"address\": \"123 Main Street, City\",\n  \"gstNumber\": \"GST1234567890\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/auth/register",
@@ -62,7 +84,28 @@
           }
         },
         {
-          "name": "Register User - Validation Error",
+          "name": "Register Tenant 2 (Store 2)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userName\": \"Admin User\",\n  \"email\": \"admin@store2.com\",\n  \"password\": \"password123\",\n  \"role\": \"Admin\",\n  \"businessName\": \"Silver Palace\",\n  \"ownerName\": \"Jane Smith\",\n  \"phone\": \"9876543211\",\n  \"address\": \"456 Market Road, City\",\n  \"gstNumber\": \"GST0987654321\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Register - Validation Error",
           "request": {
             "method": "POST",
             "header": [
@@ -83,7 +126,7 @@
           }
         },
         {
-          "name": "Login - Success",
+          "name": "Login Store 1",
           "event": [
             {
               "listen": "test",
@@ -95,7 +138,8 @@
                   "",
                   "var jsonData = pm.response.json();",
                   "pm.collectionVariables.set(\"token\", jsonData.token);",
-                  "pm.collectionVariables.set(\"user_id\", jsonData.user.id);"
+                  "pm.collectionVariables.set(\"user_id\", jsonData.user.id);",
+                  "pm.collectionVariables.set(\"tenant_id\", jsonData.user.tenantId);"
                 ]
               }
             }
@@ -110,7 +154,45 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"admin@jewellify.com\",\n  \"password\": \"password123\"\n}"
+              "raw": "{\n  \"email\": \"admin@store1.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Login Store 2",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "pm.collectionVariables.set(\"token\", jsonData.token);",
+                  "pm.collectionVariables.set(\"user_id\", jsonData.user.id);",
+                  "pm.collectionVariables.set(\"tenant_id\", jsonData.user.tenantId);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@store2.com\",\n  \"password\": \"password123\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/auth/login",
@@ -131,7 +213,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"admin@jewellify.com\",\n  \"password\": \"wrongpassword\"\n}"
+              "raw": "{\n  \"email\": \"admin@store1.com\",\n  \"password\": \"wrongpassword\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/auth/login",
@@ -146,7 +228,7 @@
       "name": "Items",
       "item": [
         {
-          "name": "Get All Items",
+          "name": "Get All Items (with Pagination)",
           "request": {
             "method": "GET",
             "header": [
@@ -156,10 +238,18 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/items?search=gold&category=Ring&sortBy=createdAt&sortOrder=desc",
+              "raw": "{{base_url}}/api/items?page=1&limit=10&search=gold&category=Ring&sortBy=createdAt&sortOrder=desc",
               "host": ["{{base_url}}"],
               "path": ["api", "items"],
               "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
                 {
                   "key": "search",
                   "value": "gold"

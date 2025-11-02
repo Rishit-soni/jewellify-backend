@@ -1,11 +1,12 @@
 const Item = require("../models/Item");
 const Order = require("../models/Order");
 const Customer = require("../models/Customer");
+const User = require("../models/user");
 
 exports.getDashboardSummary = async (req, res) => {
   try {
     // Total stock value (assuming gold and silver prices, but simplified)
-    const items = await Item.find();
+    const items = await Item.find({ tenantId: req.tenantId });
     const totalStockValue = items.reduce(
       (sum, item) => sum + item.stockQty * 1000,
       0
@@ -18,6 +19,7 @@ exports.getDashboardSummary = async (req, res) => {
     tomorrow.setDate(tomorrow.getDate() + 1);
 
     const todaysOrders = await Order.find({
+      tenantId: req.tenantId,
       createdAt: { $gte: today, $lt: tomorrow },
       status: "Completed",
     });
@@ -28,7 +30,7 @@ exports.getDashboardSummary = async (req, res) => {
     );
 
     // Pending payments (simplified - orders not completed)
-    const pendingOrders = await Order.find({ status: { $ne: "Completed" } });
+    const pendingOrders = await Order.find({ tenantId: req.tenantId, status: { $ne: "Completed" } });
     const pendingPayments = pendingOrders.reduce(
       (sum, order) => sum + order.totalAmount,
       0
@@ -45,6 +47,7 @@ exports.getDashboardSummary = async (req, res) => {
       endOfDay.setDate(endOfDay.getDate() + 1);
 
       const dayOrders = await Order.find({
+        tenantId: req.tenantId,
         createdAt: { $gte: startOfDay, $lt: endOfDay },
         status: "Completed",
       });
@@ -61,7 +64,7 @@ exports.getDashboardSummary = async (req, res) => {
 
     // Top-selling items (simplified - based on order frequency)
     const itemSales = {};
-    const allOrders = await Order.find({ status: "Completed" });
+    const allOrders = await Order.find({ tenantId: req.tenantId, status: "Completed" });
     allOrders.forEach((order) => {
       order.items.forEach((item) => {
         if (itemSales[item.itemCode]) {
