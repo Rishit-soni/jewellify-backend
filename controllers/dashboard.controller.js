@@ -2,6 +2,7 @@ const Item = require("../models/Item");
 const Order = require("../models/Order");
 const Customer = require("../models/Customer");
 const User = require("../models/user");
+const Tenant = require("../models/Tenant");
 
 exports.getDashboardSummary = async (req, res) => {
   try {
@@ -30,7 +31,10 @@ exports.getDashboardSummary = async (req, res) => {
     );
 
     // Pending payments (simplified - orders not completed)
-    const pendingOrders = await Order.find({ tenantId: req.tenantId, status: { $ne: "Completed" } });
+    const pendingOrders = await Order.find({
+      tenantId: req.tenantId,
+      status: { $ne: "Completed" },
+    });
     const pendingPayments = pendingOrders.reduce(
       (sum, order) => sum + order.totalAmount,
       0
@@ -64,7 +68,10 @@ exports.getDashboardSummary = async (req, res) => {
 
     // Top-selling items (simplified - based on order frequency)
     const itemSales = {};
-    const allOrders = await Order.find({ tenantId: req.tenantId, status: "Completed" });
+    const allOrders = await Order.find({
+      tenantId: req.tenantId,
+      status: "Completed",
+    });
     allOrders.forEach((order) => {
       order.items.forEach((item) => {
         if (itemSales[item.itemCode]) {
@@ -80,7 +87,26 @@ exports.getDashboardSummary = async (req, res) => {
       .slice(0, 5)
       .map(([itemCode, qty]) => ({ itemCode, qty }));
 
+    // Fetch tenant details for the logged-in user
+    const tenant = await Tenant.findById(req.tenantId);
+    const user = await User.findById(req.user.id);
+
     res.json({
+      user: {
+        id: user._id,
+        email: user.email,
+        role: user.role,
+        userName: user.userName,
+      },
+      tenant: {
+        id: tenant._id,
+        businessName: tenant.businessName,
+        ownerName: tenant.ownerName,
+        email: tenant.email,
+        phone: tenant.phone,
+        address: tenant.address,
+        gstNumber: tenant.gstNumber,
+      },
       totalStockValue,
       todaysSales,
       pendingPayments,

@@ -696,6 +696,40 @@
       "item": [
         {
           "name": "Get Dashboard Summary",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has user details\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.user).to.have.property('userName');",
+                  "    pm.expect(jsonData.user).to.have.property('email');",
+                  "    pm.expect(jsonData.user).to.have.property('role');",
+                  "});",
+                  "",
+                  "pm.test(\"Response has tenant details\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.tenant).to.have.property('businessName');",
+                  "    pm.expect(jsonData.tenant).to.have.property('ownerName');",
+                  "});",
+                  "",
+                  "pm.test(\"Response has dashboard metrics\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('totalStockValue');",
+                  "    pm.expect(jsonData).to.have.property('todaysSales');",
+                  "    pm.expect(jsonData).to.have.property('pendingPayments');",
+                  "    pm.expect(jsonData).to.have.property('weeklyRevenue');",
+                  "    pm.expect(jsonData).to.have.property('topSellingItems');",
+                  "});"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [
@@ -708,7 +742,8 @@
               "raw": "{{base_url}}/api/dashboard/summary",
               "host": ["{{base_url}}"],
               "path": ["api", "dashboard", "summary"]
-            }
+            },
+            "description": "Get comprehensive dashboard summary including:\n- User details (name, email, role)\n- Tenant/Business details (business name, owner, contact info)\n- Total stock value\n- Today's sales\n- Pending payments\n- Weekly revenue chart (last 7 days)\n- Top 5 selling items"
           }
         }
       ]
