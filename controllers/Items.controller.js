@@ -9,6 +9,8 @@ exports.getAllItems = async (req, res) => {
       category,
       sortBy = "createdAt",
       sortOrder = "desc",
+      page = 1,
+      limit = 10,
     } = req.query;
     let query = {};
 
@@ -26,8 +28,24 @@ exports.getAllItems = async (req, res) => {
     const sortOptions = {};
     sortOptions[sortBy] = sortOrder === "desc" ? -1 : 1;
 
-    const items = await Item.find(query).sort(sortOptions);
-    res.json(items);
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
+
+    const totalItems = await Item.countDocuments(query);
+    const items = await Item.find(query)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(limitNum);
+
+    const totalPages = Math.ceil(totalItems / limitNum);
+
+    res.json({
+      items,
+      totalItems,
+      currentPage: pageNum,
+      totalPages,
+    });
   } catch (error) {
     console.error("Error fetching items:", error);
     res.status(500).json({ message: "Internal server error" });
