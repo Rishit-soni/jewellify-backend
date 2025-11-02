@@ -288,14 +288,17 @@
           }
         },
         {
-          "name": "Create Item - Success",
+          "name": "Create Item - Gents Ring (Auto-generated code)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
                   "var jsonData = pm.response.json();",
-                  "pm.collectionVariables.set(\"item_id\", jsonData.item._id);"
+                  "pm.collectionVariables.set(\"item_id\", jsonData.item._id);",
+                  "pm.test(\"Item code auto-generated with GR prefix\", function () {",
+                  "    pm.expect(jsonData.item.itemCode).to.match(/^GR\\d{4}$/);",
+                  "});"
                 ]
               }
             }
@@ -312,20 +315,17 @@
               "mode": "formdata",
               "formdata": [
                 {
-                  "key": "itemCode",
-                  "value": "R001"
-                },
-                {
                   "key": "name",
-                  "value": "Gold Ring"
+                  "value": "Gold Ring for Gents"
                 },
                 {
                   "key": "description",
-                  "value": "Beautiful 18k gold ring"
+                  "value": "Beautiful 18k gold ring for men"
                 },
                 {
                   "key": "category",
-                  "value": "Ring"
+                  "value": "Gents ring",
+                  "description": "Will auto-generate itemCode: GR0001, GR0002, etc."
                 },
                 {
                   "key": "grossWeight",
@@ -344,8 +344,74 @@
                   "value": "HUID123456"
                 },
                 {
-                  "key": "stockQty",
-                  "value": "5"
+                  "key": "images",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/items",
+              "host": ["{{base_url}}"],
+              "path": ["api", "items"]
+            },
+            "description": "Item code is auto-generated based on category. Gents ring -> GR0001, GR0002, etc."
+          }
+        },
+        {
+          "name": "Create Item - Ladies Ring (Auto-generated code)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"Item code auto-generated with LR prefix\", function () {",
+                  "    pm.expect(jsonData.item.itemCode).to.match(/^LR\\d{4}$/);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "Diamond Ring for Ladies"
+                },
+                {
+                  "key": "description",
+                  "value": "Elegant diamond ring"
+                },
+                {
+                  "key": "category",
+                  "value": "Ladies ring",
+                  "description": "Will auto-generate itemCode: LR0001, LR0002, etc."
+                },
+                {
+                  "key": "grossWeight",
+                  "value": "8.3"
+                },
+                {
+                  "key": "netWeight",
+                  "value": "7.5"
+                },
+                {
+                  "key": "source",
+                  "value": "Import"
+                },
+                {
+                  "key": "huid",
+                  "value": "HUID789012"
                 },
                 {
                   "key": "images",
@@ -358,7 +424,8 @@
               "raw": "{{base_url}}/api/items",
               "host": ["{{base_url}}"],
               "path": ["api", "items"]
-            }
+            },
+            "description": "Item code is auto-generated based on category. Ladies ring -> LR0001, LR0002, etc."
           }
         },
         {
@@ -375,15 +442,15 @@
               "mode": "formdata",
               "formdata": [
                 {
-                  "key": "itemCode",
-                  "value": ""
-                },
-                {
                   "key": "name",
                   "value": ""
                 },
                 {
                   "key": "category",
+                  "value": ""
+                },
+                {
+                  "key": "grossWeight",
                   "value": ""
                 }
               ]
@@ -392,7 +459,8 @@
               "raw": "{{base_url}}/api/items",
               "host": ["{{base_url}}"],
               "path": ["api", "items"]
-            }
+            },
+            "description": "Test validation - itemCode is no longer required (auto-generated)"
           }
         },
         {
@@ -687,6 +755,126 @@
               "host": ["{{base_url}}"],
               "path": ["api", "quotations"]
             }
+          }
+        }
+      ]
+    },
+    {
+      "name": "User Management",
+      "item": [
+        {
+          "name": "Get All Users (Admin Only)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/users",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users"]
+            },
+            "description": "Get all users of the tenant. Only accessible by Admin role."
+          }
+        },
+        {
+          "name": "Create User (Admin Only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userName\": \"Store Manager\",\n  \"email\": \"manager@store1.com\",\n  \"password\": \"password123\",\n  \"role\": \"Manager\",\n  \"phone\": \"+91-9876543212\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users"]
+            },
+            "description": "Create a new user (Manager or Staff) for the tenant. Only accessible by Admin role."
+          }
+        },
+        {
+          "name": "Create Staff User (Admin Only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userName\": \"Staff Member\",\n  \"email\": \"staff@store1.com\",\n  \"password\": \"password123\",\n  \"role\": \"Staff\",\n  \"phone\": \"+91-9876543213\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users"]
+            },
+            "description": "Create a new staff user for the tenant. Only accessible by Admin role."
+          }
+        },
+        {
+          "name": "Create User - Validation Error",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userName\": \"\",\n  \"email\": \"invalid-email\",\n  \"password\": \"123\",\n  \"role\": \"InvalidRole\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users"]
+            },
+            "description": "Test validation errors for user creation"
+          }
+        },
+        {
+          "name": "Access Denied - Non-Admin User",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "description": "Use a Manager or Staff token to test access denial"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/users",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users"]
+            },
+            "description": "Test that non-admin users cannot access this endpoint. Should return 403 Forbidden."
           }
         }
       ]

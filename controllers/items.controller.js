@@ -66,7 +66,6 @@ exports.getItemById = async (req, res) => {
 };
 
 exports.createItem = [
-  body("itemCode").notEmpty().withMessage("Item code is required"),
   body("name").notEmpty().withMessage("Name is required"),
   body("category").notEmpty().withMessage("Category is required"),
   body("grossWeight").isNumeric().withMessage("Gross weight must be a number"),
@@ -80,16 +79,9 @@ exports.createItem = [
     }
 
     try {
-      const existingItem = await Item.findOne({ 
-        itemCode: req.body.itemCode, 
-        tenantId: req.tenantId 
-      });
-      if (existingItem) {
-        return res.status(400).json({ message: "Item code already exists" });
-      }
-
       const item = new Item({
         _id: new mongoose.Types.ObjectId(),
+        tenantId: req.tenantId,
         ...req.body,
         images: req.files ? req.files.map((file) => file.filename) : [],
       });
