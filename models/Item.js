@@ -15,10 +15,12 @@ const itemSchema = new mongoose.Schema(
     category: { type: String, required: true },
     grossWeight: { type: Number, required: true },
     netWeight: { type: Number, required: true },
-    otherCharges: {
-      type: Number,
-      default: 0,
-    },
+    otherCharges: [
+      {
+        name: { type: String, required: true },
+        amount: { type: Number, required: true, min: 0 },
+      },
+    ],
     source: { type: String, required: true },
     huid: { type: String, required: true },
     images: [{ type: String, required: true }],

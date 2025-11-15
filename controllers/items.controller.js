@@ -76,6 +76,18 @@ exports.createItem = [
   body("netWeight").isNumeric().withMessage("Net weight must be a number"),
   body("source").notEmpty().withMessage("Source is required"),
   body("huid").notEmpty().withMessage("HUID is required"),
+  body("otherCharges")
+    .optional()
+    .isArray()
+    .withMessage("Other charges must be an array"),
+  body("otherCharges.*.name")
+    .optional()
+    .notEmpty()
+    .withMessage("Charge name is required"),
+  body("otherCharges.*.amount")
+    .optional()
+    .isNumeric()
+    .withMessage("Charge amount must be a number"),
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -128,6 +140,18 @@ exports.updateItem = [
     .withMessage("Net weight must be a number"),
   body("source").optional().notEmpty().withMessage("Source cannot be empty"),
   body("huid").optional().notEmpty().withMessage("HUID cannot be empty"),
+  body("otherCharges")
+    .optional()
+    .isArray()
+    .withMessage("Other charges must be an array"),
+  body("otherCharges.*.name")
+    .optional()
+    .notEmpty()
+    .withMessage("Charge name is required"),
+  body("otherCharges.*.amount")
+    .optional()
+    .isNumeric()
+    .withMessage("Charge amount must be a number"),
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {

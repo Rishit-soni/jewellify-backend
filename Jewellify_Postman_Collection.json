@@ -364,6 +364,14 @@
                   "pm.test(\"Category validation passed\", function () {",
                   "    var jsonData = pm.response.json();",
                   "    pm.expect(jsonData.item.category).to.eql(\"Gold Necklace\");",
+                  "});",
+                  "",
+                  "pm.test(\"Other charges are stored correctly\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.item.otherCharges).to.be.an('array');",
+                  "    pm.expect(jsonData.item.otherCharges).to.have.lengthOf(2);",
+                  "    pm.expect(jsonData.item.otherCharges[0]).to.have.property('name', 'Rhodium');",
+                  "    pm.expect(jsonData.item.otherCharges[0]).to.have.property('amount', 200);",
                   "});"
                 ]
               }
@@ -410,6 +418,11 @@
                   "value": "HUID123456"
                 },
                 {
+                  "key": "otherCharges",
+                  "value": "[{\"name\":\"Rhodium\",\"amount\":200},{\"name\":\"Diamonds\",\"amount\":4000}]",
+                  "description": "Array of additional charges as JSON string. Each charge has 'name' and 'amount' fields."
+                },
+                {
                   "key": "images",
                   "type": "file",
                   "src": []
@@ -421,7 +434,7 @@
               "host": ["{{base_url}}"],
               "path": ["api", "items"]
             },
-            "description": "Create item with category validation. Item code prefix is auto-generated from category name. Gold Necklace -> GN01, GN02, etc. Category must exist before creating items."
+            "description": "Create item with category validation and other charges. Item code prefix is auto-generated from category name. Gold Necklace -> GN01, GN02, etc. Category must exist before creating items. Other charges can include Rhodium, Diamonds, Labor, etc."
           }
         },
         {
@@ -484,6 +497,11 @@
                   "value": "HUID789012"
                 },
                 {
+                  "key": "otherCharges",
+                  "value": "[{\"name\":\"Platinum Setting\",\"amount\":1500}]",
+                  "description": "Array of additional charges as JSON string. Each charge has 'name' and 'amount' fields."
+                },
+                {
                   "key": "images",
                   "type": "file",
                   "src": []
@@ -495,7 +513,7 @@
               "host": ["{{base_url}}"],
               "path": ["api", "items"]
             },
-            "description": "Create item with different category. Item code prefix is auto-generated from category name. Silver Bracelet -> SB01, SB02, etc. Category must exist before creating items."
+            "description": "Create item with different category and other charges. Item code prefix is auto-generated from category name. Silver Bracelet -> SB01, SB02, etc. Category must exist before creating items. Other charges can include Platinum Setting, etc."
           }
         },
         {
@@ -535,6 +553,11 @@
                 {
                   "key": "huid",
                   "value": "TEST123"
+                },
+                {
+                  "key": "otherCharges",
+                  "value": "[{\"name\":\"Gemstone\",\"amount\":2500}]",
+                  "description": "Array of additional charges as JSON string. Each charge has 'name' and 'amount' fields."
                 }
               ]
             },
@@ -543,7 +566,7 @@
               "host": ["{{base_url}}"],
               "path": ["api", "items"]
             },
-            "description": "Test category validation - should return 400 error because category doesn't exist"
+            "description": "Test category validation - should return 400 error because category doesn't exist. Also includes other charges for testing."
           }
         },
         {
@@ -564,8 +587,9 @@
                   "value": "Updated Gold Ring"
                 },
                 {
-                  "key": "stockQty",
-                  "value": "3"
+                  "key": "otherCharges",
+                  "value": "[{\"name\":\"Rhodium\",\"amount\":300},{\"name\":\"Diamonds\",\"amount\":5000},{\"name\":\"Labor\",\"amount\":800}]",
+                  "description": "Update other charges array. Each charge has 'name' and 'amount' fields."
                 }
               ]
             },
@@ -677,7 +701,70 @@
               "raw": "{{base_url}}/api/customers/{{customer_id}}",
               "host": ["{{base_url}}"],
               "path": ["api", "customers", "{{customer_id}}"]
+            },
+            "description": "Get basic customer information by ID"
+          }
+        },
+        {
+          "name": "Get Customer Details (Full History)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response includes customer details\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('customer');",
+                  "    pm.expect(jsonData.customer).to.have.property('name');",
+                  "    pm.expect(jsonData.customer).to.have.property('phone');",
+                  "});",
+                  "",
+                  "pm.test(\"Response includes recent orders\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('recentOrders');",
+                  "    pm.expect(jsonData.recentOrders).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test(\"Response includes outstanding amount\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('outstandingAmount');",
+                  "    pm.expect(jsonData.outstandingAmount).to.be.a('number');",
+                  "});",
+                  "",
+                  "pm.test(\"Response includes transaction history\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('transactionHistory');",
+                  "    pm.expect(jsonData.transactionHistory).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test(\"Response includes statistics\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('statistics');",
+                  "    pm.expect(jsonData.statistics).to.have.property('totalOrders');",
+                  "    pm.expect(jsonData.statistics).to.have.property('totalOrderValue');",
+                  "});"
+                ]
+              }
             }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/customers/{{customer_id}}/details",
+              "host": ["{{base_url}}"],
+              "path": ["api", "customers", "{{customer_id}}", "details"]
+            },
+            "description": "Get comprehensive customer details including:\n- Customer basic information\n- Recent orders (last 10 with item details)\n- Outstanding payments amount\n- Transaction history (last 20 ledger entries)\n- Order statistics (total orders, completed, pending, total value)"
           }
         },
         {

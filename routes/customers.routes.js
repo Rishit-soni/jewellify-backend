@@ -6,6 +6,11 @@ const { attachTenantId } = require("../middlewares/tenant");
 
 router.get("/", authenticateToken, customersController.getAllCustomers);
 router.get("/:id", authenticateToken, customersController.getCustomerById);
+router.get(
+  "/:id/details",
+  authenticateToken,
+  customersController.getCustomerDetails
+);
 router.post(
   "/",
   authenticateToken,
