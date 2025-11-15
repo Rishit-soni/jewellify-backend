@@ -28,25 +28,7 @@ const itemSchema = new mongoose.Schema(
 
 itemSchema.index({ tenantId: 1, itemCode: 1 }, { unique: true });
 
-const categoryPrefixMap = {
-  "Gents ring": "GR",
-  "Ladies ring": "LR",
-  "Gents chain": "GC",
-  "Ladies chain": "LC",
-  "Gents bracelet": "GB",
-  "Ladies bracelet": "LB",
-  Earrings: "ER",
-  Pendant: "PD",
-  Necklace: "NK",
-  Bangles: "BG",
-  Mangalsutra: "MS",
-  "Nose pin": "NP",
-};
-
 const getCategoryPrefix = (category) => {
-  if (categoryPrefixMap[category]) {
-    return categoryPrefixMap[category];
-  }
   const words = category.split(" ");
   if (words.length >= 2) {
     return (words[0][0] + words[1][0]).toUpperCase();

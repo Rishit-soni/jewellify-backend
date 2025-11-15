@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Item = require("../models/Item");
+const Category = require("../models/Category");
 const { body, validationResult } = require("express-validator");
 
 exports.getAllItems = async (req, res) => {
@@ -40,8 +41,14 @@ exports.getAllItems = async (req, res) => {
 
     const totalPages = Math.ceil(totalItems / limitNum);
 
+    // Fetch all categories for the tenant
+    const categories = await Category.find({ tenantId: req.tenantId }).sort({
+      name: 1,
+    });
+
     res.json({
       items,
+      categories,
       totalItems,
       currentPage: pageNum,
       totalPages,
@@ -54,7 +61,10 @@ exports.getAllItems = async (req, res) => {
 
 exports.getItemById = async (req, res) => {
   try {
-    const item = await Item.findOne({ _id: req.params.id, tenantId: req.tenantId });
+    const item = await Item.findOne({
+      _id: req.params.id,
+      tenantId: req.tenantId,
+    });
     if (!item) {
       return res.status(404).json({ message: "Item not found" });
     }
@@ -79,6 +89,15 @@ exports.createItem = [
     }
 
     try {
+      // Validate that the category exists for the tenant
+      const categoryExists = await Category.findOne({
+        tenantId: req.tenantId,
+        name: req.body.category,
+      });
+      if (!categoryExists) {
+        return res.status(400).json({ message: "Invalid category" });
+      }
+
       const item = new Item({
         _id: new mongoose.Types.ObjectId(),
         tenantId: req.tenantId,
@@ -122,9 +141,23 @@ exports.updateItem = [
     }
 
     try {
-      const item = await Item.findOne({ _id: req.params.id, tenantId: req.tenantId });
+      const item = await Item.findOne({
+        _id: req.params.id,
+        tenantId: req.tenantId,
+      });
       if (!item) {
         return res.status(404).json({ message: "Item not found" });
+      }
+
+      // Validate category if being updated
+      if (req.body.category && req.body.category !== item.category) {
+        const categoryExists = await Category.findOne({
+          tenantId: req.tenantId,
+          name: req.body.category,
+        });
+        if (!categoryExists) {
+          return res.status(400).json({ message: "Invalid category" });
+        }
       }
 
       // Check if itemCode is being updated and if it conflicts
@@ -159,7 +192,10 @@ exports.updateItem = [
 
 exports.deleteItem = async (req, res) => {
   try {
-    const item = await Item.findOneAndDelete({ _id: req.params.id, tenantId: req.tenantId });
+    const item = await Item.findOneAndDelete({
+      _id: req.params.id,
+      tenantId: req.tenantId,
+    });
     if (!item) {
       return res.status(404).json({ message: "Item not found" });
     }

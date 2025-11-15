@@ -39,6 +39,11 @@
       "key": "order_id",
       "value": "",
       "type": "string"
+    },
+    {
+      "key": "category_id",
+      "value": "",
+      "type": "string"
     }
   ],
   "item": [
@@ -242,14 +247,8 @@
             },
             "url": {
               "raw": "{{base_url}}/api/auth/change-password",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "change-password"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "change-password"]
             }
           }
         }
@@ -287,7 +286,7 @@
                 },
                 {
                   "key": "category",
-                  "value": "Ring"
+                  "value": "Gold Necklace"
                 },
                 {
                   "key": "sortBy",
@@ -327,8 +326,8 @@
                 "exec": [
                   "var jsonData = pm.response.json();",
                   "pm.collectionVariables.set(\"item_id\", jsonData.item._id);",
-                  "pm.test(\"Item code auto-generated with GR prefix\", function () {",
-                  "    pm.expect(jsonData.item.itemCode).to.match(/^GR\\d{4}$/);",
+                  "pm.test(\"Item code auto-generated with GN prefix\", function () {",
+                  "    pm.expect(jsonData.item.itemCode).to.match(/^GN\\d{4}$/);",
                   "});"
                 ]
               }
@@ -355,8 +354,8 @@
                 },
                 {
                   "key": "category",
-                  "value": "Gents ring",
-                  "description": "Will auto-generate itemCode: GR0001, GR0002, etc."
+                  "value": "Gold Necklace",
+                  "description": "Category must exist in the system. Prefix will be generated automatically from category name."
                 },
                 {
                   "key": "grossWeight",
@@ -386,7 +385,7 @@
               "host": ["{{base_url}}"],
               "path": ["api", "items"]
             },
-            "description": "Item code is auto-generated based on category. Gents ring -> GR0001, GR0002, etc."
+            "description": "Item code prefix is auto-generated from category name. Gold Necklace -> GN0001, GN0002, etc."
           }
         },
         {
@@ -397,8 +396,8 @@
               "script": {
                 "exec": [
                   "var jsonData = pm.response.json();",
-                  "pm.test(\"Item code auto-generated with LR prefix\", function () {",
-                  "    pm.expect(jsonData.item.itemCode).to.match(/^LR\\d{4}$/);",
+                  "pm.test(\"Item code auto-generated with GN prefix\", function () {",
+                  "    pm.expect(jsonData.item.itemCode).to.match(/^GN\\d{4}$/);",
                   "});"
                 ]
               }
@@ -425,8 +424,8 @@
                 },
                 {
                   "key": "category",
-                  "value": "Ladies ring",
-                  "description": "Will auto-generate itemCode: LR0001, LR0002, etc."
+                  "value": "Gold Necklace",
+                  "description": "Category must exist in the system. Prefix will be generated automatically from category name."
                 },
                 {
                   "key": "grossWeight",
@@ -456,7 +455,7 @@
               "host": ["{{base_url}}"],
               "path": ["api", "items"]
             },
-            "description": "Item code is auto-generated based on category. Ladies ring -> LR0001, LR0002, etc."
+            "description": "Item code prefix is auto-generated from category name. Gold Necklace -> GN0001, GN0002, etc."
           }
         },
         {
@@ -491,7 +490,7 @@
               "host": ["{{base_url}}"],
               "path": ["api", "items"]
             },
-            "description": "Test validation - itemCode is no longer required (auto-generated)"
+            "description": "Test validation - category must exist in the system"
           }
         },
         {
@@ -906,6 +905,211 @@
               "path": ["api", "users"]
             },
             "description": "Test that non-admin users cannot access this endpoint. Should return 403 Forbidden."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Categories",
+      "item": [
+        {
+          "name": "Get All Categories",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/categories",
+              "host": ["{{base_url}}"],
+              "path": ["api", "categories"]
+            },
+            "description": "Get all categories for the tenant. Categories are used to organize jewelry items."
+          }
+        },
+        {
+          "name": "Create Category (Admin Only)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "pm.collectionVariables.set(\"category_id\", jsonData.category._id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Gold Necklace\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/categories",
+              "host": ["{{base_url}}"],
+              "path": ["api", "categories"]
+            },
+            "description": "Create a new category for organizing jewelry items. Only Admin users can create categories. Categories are tenant-specific."
+          }
+        },
+        {
+          "name": "Create Category - Duplicate Name Error",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Gold Necklace\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/categories",
+              "host": ["{{base_url}}"],
+              "path": ["api", "categories"]
+            },
+            "description": "Test creating a category with a name that already exists. Should return 400 error."
+          }
+        },
+        {
+          "name": "Create Category - Validation Error",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/categories",
+              "host": ["{{base_url}}"],
+              "path": ["api", "categories"]
+            },
+            "description": "Test validation - category name is required and must be 1-50 characters."
+          }
+        },
+        {
+          "name": "Update Category (Admin Only)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Diamond Necklace\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/categories/{{category_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "categories", "{{category_id}}"]
+            },
+            "description": "Update category name. Only Admin users can update categories. This will cascade update all items with the old category name to the new name."
+          }
+        },
+        {
+          "name": "Delete Category (Admin Only)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/categories/{{category_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "categories", "{{category_id}}"]
+            },
+            "description": "Delete a category. Only Admin users can delete categories. Can only delete if no items are associated with this category."
+          }
+        },
+        {
+          "name": "Delete Category - Has Items Error",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/categories/{{category_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "categories", "{{category_id}}"]
+            },
+            "description": "Try to delete a category that has associated items. Should return 400 error with message about associated items."
+          }
+        },
+        {
+          "name": "Access Denied - Non-Admin User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "description": "Use a Manager or Staff token to test access denial"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test Category\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/categories",
+              "host": ["{{base_url}}"],
+              "path": ["api", "categories"]
+            },
+            "description": "Test that non-admin users cannot create categories. Should return 403 Forbidden."
           }
         }
       ]
