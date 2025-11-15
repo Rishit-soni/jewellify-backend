@@ -41,14 +41,14 @@ exports.getAllItems = async (req, res) => {
 
     const totalPages = Math.ceil(totalItems / limitNum);
 
-    // Fetch all categories for the tenant
+    // Get all categories for the tenant
     const categories = await Category.find({ tenantId: req.tenantId }).sort({
       name: 1,
     });
 
     res.json({
       items,
-      categories,
+      categories: categories.map((cat) => cat.name),
       totalItems,
       currentPage: pageNum,
       totalPages,

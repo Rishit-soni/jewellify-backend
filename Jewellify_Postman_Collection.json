@@ -258,7 +258,31 @@
       "name": "Items",
       "item": [
         {
-          "name": "Get All Items (with Pagination)",
+          "name": "Get All Items (with Pagination & Categories)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response includes categories array\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('categories');",
+                  "    pm.expect(jsonData.categories).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test(\"Response includes items array\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('items');",
+                  "    pm.expect(jsonData.items).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [
@@ -268,7 +292,7 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/items?page=1&limit=10&search=gold&category=Ring&sortBy=createdAt&sortOrder=desc",
+              "raw": "{{base_url}}/api/items?page=1&limit=10&search=gold&category=Gold Necklace&sortBy=createdAt&sortOrder=desc",
               "host": ["{{base_url}}"],
               "path": ["api", "items"],
               "query": [
@@ -297,7 +321,8 @@
                   "value": "desc"
                 }
               ]
-            }
+            },
+            "description": "Get all items with pagination, filtering, and categories list. Response includes:\n- items: Array of items\n- categories: Array of all category names for the tenant\n- pagination info"
           }
         },
         {
@@ -318,16 +343,25 @@
           }
         },
         {
-          "name": "Create Item - Gents Ring (Auto-generated code)",
+          "name": "Create Item - Gold Necklace (Auto-generated code)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
                   "var jsonData = pm.response.json();",
                   "pm.collectionVariables.set(\"item_id\", jsonData.item._id);",
                   "pm.test(\"Item code auto-generated with GN prefix\", function () {",
                   "    pm.expect(jsonData.item.itemCode).to.match(/^GN\\d{4}$/);",
+                  "});",
+                  "",
+                  "pm.test(\"Category validation passed\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.item.category).to.eql(\"Gold Necklace\");",
                   "});"
                 ]
               }
@@ -346,24 +380,24 @@
               "formdata": [
                 {
                   "key": "name",
-                  "value": "Gold Ring for Gents"
+                  "value": "Gold Necklace for Ladies"
                 },
                 {
                   "key": "description",
-                  "value": "Beautiful 18k gold ring for men"
+                  "value": "Beautiful 18k gold necklace"
                 },
                 {
                   "key": "category",
                   "value": "Gold Necklace",
-                  "description": "Category must exist in the system. Prefix will be generated automatically from category name."
+                  "description": "Category must exist in the system. Create categories first using Categories endpoints."
                 },
                 {
                   "key": "grossWeight",
-                  "value": "10.5"
+                  "value": "25.5"
                 },
                 {
                   "key": "netWeight",
-                  "value": "9.2"
+                  "value": "22.8"
                 },
                 {
                   "key": "source",
@@ -385,19 +419,23 @@
               "host": ["{{base_url}}"],
               "path": ["api", "items"]
             },
-            "description": "Item code prefix is auto-generated from category name. Gold Necklace -> GN0001, GN0002, etc."
+            "description": "Create item with category validation. Item code prefix is auto-generated from category name. Gold Necklace -> GN0001, GN0002, etc. Category must exist before creating items."
           }
         },
         {
-          "name": "Create Item - Ladies Ring (Auto-generated code)",
+          "name": "Create Item - Silver Bracelet (Auto-generated code)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
                   "var jsonData = pm.response.json();",
-                  "pm.test(\"Item code auto-generated with GN prefix\", function () {",
-                  "    pm.expect(jsonData.item.itemCode).to.match(/^GN\\d{4}$/);",
+                  "pm.test(\"Item code auto-generated with SB prefix\", function () {",
+                  "    pm.expect(jsonData.item.itemCode).to.match(/^SB\\d{4}$/);",
                   "});"
                 ]
               }
@@ -416,24 +454,24 @@
               "formdata": [
                 {
                   "key": "name",
-                  "value": "Diamond Ring for Ladies"
+                  "value": "Silver Bracelet"
                 },
                 {
                   "key": "description",
-                  "value": "Elegant diamond ring"
+                  "value": "Elegant silver bracelet"
                 },
                 {
                   "key": "category",
-                  "value": "Gold Necklace",
-                  "description": "Category must exist in the system. Prefix will be generated automatically from category name."
+                  "value": "Silver Bracelet",
+                  "description": "Category must exist in the system. Create categories first using Categories endpoints."
                 },
                 {
                   "key": "grossWeight",
-                  "value": "8.3"
+                  "value": "15.2"
                 },
                 {
                   "key": "netWeight",
-                  "value": "7.5"
+                  "value": "13.8"
                 },
                 {
                   "key": "source",
@@ -455,11 +493,11 @@
               "host": ["{{base_url}}"],
               "path": ["api", "items"]
             },
-            "description": "Item code prefix is auto-generated from category name. Gold Necklace -> GN0001, GN0002, etc."
+            "description": "Create item with different category. Item code prefix is auto-generated from category name. Silver Bracelet -> SB0001, SB0002, etc. Category must exist before creating items."
           }
         },
         {
-          "name": "Create Item - Validation Error",
+          "name": "Create Item - Invalid Category Error",
           "request": {
             "method": "POST",
             "header": [
@@ -473,15 +511,28 @@
               "formdata": [
                 {
                   "key": "name",
-                  "value": ""
+                  "value": "Test Item"
                 },
                 {
                   "key": "category",
-                  "value": ""
+                  "value": "NonExistentCategory",
+                  "description": "This category doesn't exist in the system"
                 },
                 {
                   "key": "grossWeight",
-                  "value": ""
+                  "value": "10.0"
+                },
+                {
+                  "key": "netWeight",
+                  "value": "9.0"
+                },
+                {
+                  "key": "source",
+                  "value": "Test"
+                },
+                {
+                  "key": "huid",
+                  "value": "TEST123"
                 }
               ]
             },
@@ -490,7 +541,7 @@
               "host": ["{{base_url}}"],
               "path": ["api", "items"]
             },
-            "description": "Test validation - category must exist in the system"
+            "description": "Test category validation - should return 400 error because category doesn't exist"
           }
         },
         {
@@ -703,6 +754,10 @@
               "listen": "test",
               "script": {
                 "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
                   "var jsonData = pm.response.json();",
                   "pm.collectionVariables.set(\"order_id\", jsonData.order._id);"
                 ]
@@ -723,13 +778,14 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"customerId\": \"{{customer_id}}\",\n  \"items\": [\n    {\n      \"itemCode\": \"R001\",\n      \"qty\": 1,\n      \"price\": 50000\n    }\n  ],\n  \"totalWeight\": 9.2,\n  \"totalAmount\": 50000,\n  \"payments\": [\n    {\n      \"mode\": \"Cash\",\n      \"amount\": 50000\n    }\n  ]\n}"
+              "raw": "{\n  \"customerId\": \"{{customer_id}}\",\n  \"items\": [\n    {\n      \"itemCode\": \"GN0001\",\n      \"qty\": 1,\n      \"price\": 50000\n    }\n  ],\n  \"totalWeight\": 22.8,\n  \"totalAmount\": 50000,\n  \"payments\": [\n    {\n      \"mode\": \"Cash\",\n      \"amount\": 50000\n    }\n  ]\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/orders",
               "host": ["{{base_url}}"],
               "path": ["api", "orders"]
-            }
+            },
+            "description": "Create order with category validation. All items must have valid categories that exist in the system."
           }
         },
         {
@@ -778,13 +834,14 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"customerId\": \"{{customer_id}}\",\n  \"items\": [\n    {\n      \"itemCode\": \"R001\",\n      \"qty\": 2,\n      \"price\": 45000\n    }\n  ]\n}"
+              "raw": "{\n  \"customerId\": \"{{customer_id}}\",\n  \"items\": [\n    {\n      \"itemCode\": \"GN0001\",\n      \"qty\": 2,\n      \"price\": 45000\n    }\n  ]\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/quotations",
               "host": ["{{base_url}}"],
               "path": ["api", "quotations"]
-            }
+            },
+            "description": "Generate quotation with category validation. All items must have valid categories that exist in the system."
           }
         }
       ]
@@ -1148,6 +1205,7 @@
                   "    pm.expect(jsonData).to.have.property('pendingPayments');",
                   "    pm.expect(jsonData).to.have.property('weeklyRevenue');",
                   "    pm.expect(jsonData).to.have.property('topSellingItems');",
+                  "    pm.expect(jsonData).to.have.property('categoryStats');",
                   "});"
                 ]
               }
@@ -1166,7 +1224,7 @@
               "host": ["{{base_url}}"],
               "path": ["api", "dashboard", "summary"]
             },
-            "description": "Get comprehensive dashboard summary including:\n- User details (name, email, role)\n- Tenant/Business details (business name, owner, contact info)\n- Total stock value\n- Today's sales\n- Pending payments\n- Weekly revenue chart (last 7 days)\n- Top 5 selling items"
+            "description": "Get comprehensive dashboard summary including:\n- User details (name, email, role)\n- Tenant/Business details (business name, owner, contact info)\n- Total stock value\n- Today's sales\n- Pending payments\n- Weekly revenue chart (last 7 days)\n- Top 5 selling items\n- Category statistics (item count per category)"
           }
         }
       ]

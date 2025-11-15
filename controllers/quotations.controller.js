@@ -29,7 +29,10 @@ exports.generateQuotation = [
       let customer = null;
 
       if (customerId) {
-        customer = await Customer.findOne({ _id: customerId, tenantId: req.tenantId });
+        customer = await Customer.findOne({
+          _id: customerId,
+          tenantId: req.tenantId,
+        });
         if (!customer) {
           return res.status(404).json({ message: "Customer not found" });
         }
@@ -38,11 +41,24 @@ exports.generateQuotation = [
       // Validate items exist
       const quotationItems = [];
       for (const quoteItem of items) {
-        const item = await Item.findOne({ itemCode: quoteItem.itemCode, tenantId: req.tenantId });
+        const item = await Item.findOne({
+          itemCode: quoteItem.itemCode,
+          tenantId: req.tenantId,
+        });
         if (!item) {
           return res
             .status(400)
             .json({ message: `Item ${quoteItem.itemCode} not found` });
+        }
+        // Validate category exists
+        const categoryExists = await Category.findOne({
+          tenantId: req.tenantId,
+          name: item.category,
+        });
+        if (!categoryExists) {
+          return res.status(400).json({
+            message: `Invalid category for item ${quoteItem.itemCode}. Category '${item.category}' does not exist.`,
+          });
         }
         quotationItems.push({
           ...item.toObject(),

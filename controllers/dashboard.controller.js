@@ -87,6 +87,13 @@ exports.getDashboardSummary = async (req, res) => {
       .slice(0, 5)
       .map(([itemCode, qty]) => ({ itemCode, qty }));
 
+    // Get category distribution
+    const categoryStats = await Item.aggregate([
+      { $match: { tenantId: req.tenantId } },
+      { $group: { _id: "$category", count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+    ]);
+
     // Fetch tenant details for the logged-in user
     const tenant = await Tenant.findById(req.tenantId);
     const user = await User.findById(req.user.id);
@@ -112,6 +119,7 @@ exports.getDashboardSummary = async (req, res) => {
       pendingPayments,
       weeklyRevenue: weeklyData,
       topSellingItems,
+      categoryStats,
     });
   } catch (error) {
     console.error("Error fetching dashboard summary:", error);

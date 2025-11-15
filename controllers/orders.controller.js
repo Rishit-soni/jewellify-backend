@@ -17,7 +17,10 @@ exports.getAllOrders = async (req, res) => {
 
 exports.getOrderById = async (req, res) => {
   try {
-    const order = await Order.findOne({ _id: req.params.id, tenantId: req.tenantId }).populate("customerId");
+    const order = await Order.findOne({
+      _id: req.params.id,
+      tenantId: req.tenantId,
+    }).populate("customerId");
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
     }
@@ -56,7 +59,10 @@ exports.createOrder = [
     try {
       // Validate items exist and have sufficient stock
       for (const orderItem of req.body.items) {
-        const item = await Item.findOne({ itemCode: orderItem.itemCode, tenantId: req.tenantId });
+        const item = await Item.findOne({
+          itemCode: orderItem.itemCode,
+          tenantId: req.tenantId,
+        });
         if (!item) {
           return res
             .status(400)
@@ -65,6 +71,16 @@ exports.createOrder = [
         if (item.stockQty < orderItem.qty) {
           return res.status(400).json({
             message: `Insufficient stock for item ${orderItem.itemCode}. Available: ${item.stockQty}`,
+          });
+        }
+        // Validate category exists
+        const categoryExists = await Category.findOne({
+          tenantId: req.tenantId,
+          name: item.category,
+        });
+        if (!categoryExists) {
+          return res.status(400).json({
+            message: `Invalid category for item ${orderItem.itemCode}. Category '${item.category}' does not exist.`,
           });
         }
       }
