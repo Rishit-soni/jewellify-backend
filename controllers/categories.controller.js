@@ -93,10 +93,10 @@ exports.updateCategory = [
       category.name = newName;
       await category.save();
 
-      // Cascade update all items with the old category name
+      // Cascade update all items with the old category ObjectId
       await Item.updateMany(
-        { tenantId: req.tenantId, category: oldName },
-        { category: newName }
+        { tenantId: req.tenantId, category: category._id },
+        { category: category._id } // Keep the same ObjectId, no change needed since name is in Category model
       );
 
       res.json({ message: "Category updated successfully", category });
@@ -120,7 +120,7 @@ exports.deleteCategory = async (req, res) => {
     // Check if any items exist with this category
     const itemCount = await Item.countDocuments({
       tenantId: req.tenantId,
-      category: category.name,
+      category: category._id,
     });
 
     if (itemCount > 0) {

@@ -258,7 +258,7 @@
       "name": "Items",
       "item": [
         {
-          "name": "Get All Items (with Pagination & Categories)",
+          "name": "Get All Items (with Pagination)",
           "event": [
             {
               "listen": "test",
@@ -268,16 +268,18 @@
                   "    pm.response.to.have.status(200);",
                   "});",
                   "",
-                  "pm.test(\"Response includes categories array\", function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData).to.have.property('categories');",
-                  "    pm.expect(jsonData.categories).to.be.an('array');",
-                  "});",
-                  "",
                   "pm.test(\"Response includes items array\", function () {",
                   "    var jsonData = pm.response.json();",
                   "    pm.expect(jsonData).to.have.property('items');",
                   "    pm.expect(jsonData.items).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test(\"Items have category as string field\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.items.length > 0) {",
+                  "      pm.expect(jsonData.items[0]).to.have.property('category');",
+                  "      pm.expect(jsonData.items[0].category).to.be.a('string');",
+                  "    }",
                   "});"
                 ]
               }
@@ -322,7 +324,7 @@
                 }
               ]
             },
-            "description": "Get all items with pagination, filtering, and categories list. Response includes:\n- items: Array of items\n- categories: Array of all category names for the tenant\n- pagination info"
+            "description": "Get all items with pagination and filtering. Category field is returned as a string. Use separate Categories endpoints to get available categories."
           }
         },
         {
@@ -356,7 +358,7 @@
                   "var jsonData = pm.response.json();",
                   "pm.collectionVariables.set(\"item_id\", jsonData.item._id);",
                   "pm.test(\"Item code auto-generated with GN prefix\", function () {",
-                  "    pm.expect(jsonData.item.itemCode).to.match(/^GN\\d{4}$/);",
+                  "    pm.expect(jsonData.item.itemCode).to.match(/^GN\\d{2}$/);",
                   "});",
                   "",
                   "pm.test(\"Category validation passed\", function () {",
@@ -419,7 +421,7 @@
               "host": ["{{base_url}}"],
               "path": ["api", "items"]
             },
-            "description": "Create item with category validation. Item code prefix is auto-generated from category name. Gold Necklace -> GN0001, GN0002, etc. Category must exist before creating items."
+            "description": "Create item with category validation. Item code prefix is auto-generated from category name. Gold Necklace -> GN01, GN02, etc. Category must exist before creating items."
           }
         },
         {
@@ -435,7 +437,7 @@
                   "",
                   "var jsonData = pm.response.json();",
                   "pm.test(\"Item code auto-generated with SB prefix\", function () {",
-                  "    pm.expect(jsonData.item.itemCode).to.match(/^SB\\d{4}$/);",
+                  "    pm.expect(jsonData.item.itemCode).to.match(/^SB\\d{2}$/);",
                   "});"
                 ]
               }
@@ -493,7 +495,7 @@
               "host": ["{{base_url}}"],
               "path": ["api", "items"]
             },
-            "description": "Create item with different category. Item code prefix is auto-generated from category name. Silver Bracelet -> SB0001, SB0002, etc. Category must exist before creating items."
+            "description": "Create item with different category. Item code prefix is auto-generated from category name. Silver Bracelet -> SB01, SB02, etc. Category must exist before creating items."
           }
         },
         {
@@ -597,7 +599,32 @@
       "name": "Customers",
       "item": [
         {
-          "name": "Get All Customers",
+          "name": "Get All Customers (with Pagination & Search)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response includes customers array\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('customers');",
+                  "    pm.expect(jsonData.customers).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test(\"Response includes pagination info\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('totalCustomers');",
+                  "    pm.expect(jsonData).to.have.property('currentPage');",
+                  "    pm.expect(jsonData).to.have.property('totalPages');",
+                  "});"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [
@@ -607,10 +634,33 @@
               }
             ],
             "url": {
-              "raw": "{{base_url}}/api/customers",
+              "raw": "{{base_url}}/api/customers?page=1&limit=10&search=john&sortBy=createdAt&sortOrder=desc",
               "host": ["{{base_url}}"],
-              "path": ["api", "customers"]
-            }
+              "path": ["api", "customers"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "search",
+                  "value": "john"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc"
+                }
+              ]
+            },
+            "description": "Get all customers with pagination, search, and sorting. Search works on name, phone, and email fields."
           }
         },
         {
@@ -785,7 +835,7 @@
               "host": ["{{base_url}}"],
               "path": ["api", "orders"]
             },
-            "description": "Create order with category validation. All items must have valid categories that exist in the system."
+            "description": "Create order with category validation. All items must have valid categories that exist in the system. Categories are stored as strings in items."
           }
         },
         {
@@ -841,7 +891,7 @@
               "host": ["{{base_url}}"],
               "path": ["api", "quotations"]
             },
-            "description": "Generate quotation with category validation. All items must have valid categories that exist in the system."
+            "description": "Generate quotation with category validation. All items must have valid categories that exist in the system. Categories are stored as strings in items."
           }
         }
       ]

@@ -4,8 +4,44 @@ const { body, validationResult } = require("express-validator");
 
 exports.getAllCustomers = async (req, res) => {
   try {
-    const customers = await Customer.find({ tenantId: req.tenantId }).sort({ createdAt: -1 });
-    res.json(customers);
+    const {
+      search,
+      sortBy = "createdAt",
+      sortOrder = "desc",
+      page = 1,
+      limit = 10,
+    } = req.query;
+    let query = { tenantId: req.tenantId };
+
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { phone: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    const sortOptions = {};
+    sortOptions[sortBy] = sortOrder === "desc" ? -1 : 1;
+
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
+
+    const totalCustomers = await Customer.countDocuments(query);
+    const customers = await Customer.find(query)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(limitNum);
+
+    const totalPages = Math.ceil(totalCustomers / limitNum);
+
+    res.json({
+      customers,
+      totalCustomers,
+      currentPage: pageNum,
+      totalPages,
+    });
   } catch (error) {
     console.error("Error fetching customers:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -14,7 +50,10 @@ exports.getAllCustomers = async (req, res) => {
 
 exports.getCustomerById = async (req, res) => {
   try {
-    const customer = await Customer.findOne({ _id: req.params.id, tenantId: req.tenantId });
+    const customer = await Customer.findOne({
+      _id: req.params.id,
+      tenantId: req.tenantId,
+    });
     if (!customer) {
       return res.status(404).json({ message: "Customer not found" });
     }
@@ -83,7 +122,10 @@ exports.updateCustomer = [
 
 exports.deleteCustomer = async (req, res) => {
   try {
-    const customer = await Customer.findOneAndDelete({ _id: req.params.id, tenantId: req.tenantId });
+    const customer = await Customer.findOneAndDelete({
+      _id: req.params.id,
+      tenantId: req.tenantId,
+    });
     if (!customer) {
       return res.status(404).json({ message: "Customer not found" });
     }

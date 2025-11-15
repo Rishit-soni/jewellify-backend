@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const Order = require("../models/Order");
 const Item = require("../models/Item");
+const Category = require("../models/Category");
 const { body, validationResult } = require("express-validator");
 
 exports.getAllOrders = async (req, res) => {
@@ -73,14 +74,14 @@ exports.createOrder = [
             message: `Insufficient stock for item ${orderItem.itemCode}. Available: ${item.stockQty}`,
           });
         }
-        // Validate category exists
+        // Validate category exists (item.category is now an ObjectId)
         const categoryExists = await Category.findOne({
+          _id: item.category,
           tenantId: req.tenantId,
-          name: item.category,
         });
         if (!categoryExists) {
           return res.status(400).json({
-            message: `Invalid category for item ${orderItem.itemCode}. Category '${item.category}' does not exist.`,
+            message: `Invalid category for item ${orderItem.itemCode}. Category does not exist.`,
           });
         }
       }

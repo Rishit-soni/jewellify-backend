@@ -11,6 +11,9 @@ const corsOptions = {
     const allowedOrigins = [
       "http://localhost:3000",
       "http://localhost:4200",
+      "http://localhost:3001",
+      "http://localhost:5173",
+      "http://localhost:8080",
       "https://jewellify.netlify.app",
       process.env.FRONTEND_URL,
     ].filter(Boolean);

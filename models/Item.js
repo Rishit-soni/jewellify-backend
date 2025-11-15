@@ -28,12 +28,14 @@ const itemSchema = new mongoose.Schema(
 
 itemSchema.index({ tenantId: 1, itemCode: 1 }, { unique: true });
 
-const getCategoryPrefix = (category) => {
-  const words = category.split(" ");
+const getCategoryPrefix = (categoryName) => {
+  if (!categoryName) return "XX";
+
+  const words = categoryName.split(" ");
   if (words.length >= 2) {
     return (words[0][0] + words[1][0]).toUpperCase();
   }
-  return category.substring(0, 2).toUpperCase();
+  return categoryName.substring(0, 2).toUpperCase();
 };
 
 itemSchema.pre("save", async function (next) {

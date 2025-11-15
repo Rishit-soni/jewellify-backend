@@ -3,6 +3,7 @@ const Order = require("../models/Order");
 const Customer = require("../models/Customer");
 const User = require("../models/user");
 const Tenant = require("../models/Tenant");
+const Category = require("../models/Category");
 
 exports.getDashboardSummary = async (req, res) => {
   try {
@@ -87,10 +88,24 @@ exports.getDashboardSummary = async (req, res) => {
       .slice(0, 5)
       .map(([itemCode, qty]) => ({ itemCode, qty }));
 
-    // Get category distribution
+    // Get category distribution with category names
     const categoryStats = await Item.aggregate([
       { $match: { tenantId: req.tenantId } },
-      { $group: { _id: "$category", count: { $sum: 1 } } },
+      {
+        $lookup: {
+          from: "categories",
+          localField: "category",
+          foreignField: "_id",
+          as: "categoryInfo",
+        },
+      },
+      { $unwind: "$categoryInfo" },
+      {
+        $group: {
+          _id: "$categoryInfo.name",
+          count: { $sum: 1 },
+        },
+      },
       { $sort: { count: -1 } },
     ]);
 

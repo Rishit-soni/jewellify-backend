@@ -23,7 +23,7 @@ exports.getAllItems = async (req, res) => {
     }
 
     if (category) {
-      query.category = category;
+      query.category = category.trim();
     }
 
     const sortOptions = {};
@@ -41,14 +41,8 @@ exports.getAllItems = async (req, res) => {
 
     const totalPages = Math.ceil(totalItems / limitNum);
 
-    // Get all categories for the tenant
-    const categories = await Category.find({ tenantId: req.tenantId }).sort({
-      name: 1,
-    });
-
     res.json({
       items,
-      categories: categories.map((cat) => cat.name),
       totalItems,
       currentPage: pageNum,
       totalPages,
@@ -91,8 +85,8 @@ exports.createItem = [
     try {
       // Validate that the category exists for the tenant
       const categoryExists = await Category.findOne({
-        tenantId: req.tenantId,
         name: req.body.category,
+        tenantId: req.tenantId,
       });
       if (!categoryExists) {
         return res.status(400).json({ message: "Invalid category" });
@@ -152,8 +146,8 @@ exports.updateItem = [
       // Validate category if being updated
       if (req.body.category && req.body.category !== item.category) {
         const categoryExists = await Category.findOne({
-          tenantId: req.tenantId,
           name: req.body.category,
+          tenantId: req.tenantId,
         });
         if (!categoryExists) {
           return res.status(400).json({ message: "Invalid category" });

@@ -3,6 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const Item = require("../models/Item");
 const Customer = require("../models/Customer");
+const Category = require("../models/Category");
 const { body, validationResult } = require("express-validator");
 
 exports.generateQuotation = [
@@ -50,14 +51,14 @@ exports.generateQuotation = [
             .status(400)
             .json({ message: `Item ${quoteItem.itemCode} not found` });
         }
-        // Validate category exists
+        // Validate category exists (item.category is now an ObjectId)
         const categoryExists = await Category.findOne({
+          _id: item.category,
           tenantId: req.tenantId,
-          name: item.category,
         });
         if (!categoryExists) {
           return res.status(400).json({
-            message: `Invalid category for item ${quoteItem.itemCode}. Category '${item.category}' does not exist.`,
+            message: `Invalid category for item ${quoteItem.itemCode}. Category does not exist.`,
           });
         }
         quotationItems.push({
