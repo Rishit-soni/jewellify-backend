@@ -418,6 +418,14 @@
                   "value": "HUID123456"
                 },
                 {
+                  "key": "labour.mode",
+                  "value": "fixed_amount"
+                },
+                {
+                  "key": "labour.amount",
+                  "value": "500"
+                },
+                {
                   "key": "otherCharges",
                   "value": "[{\"name\":\"Rhodium\",\"amount\":200},{\"name\":\"Diamonds\",\"amount\":4000}]",
                   "description": "Array of additional charges as JSON string. Each charge has 'name' and 'amount' fields."
@@ -495,6 +503,14 @@
                 {
                   "key": "huid",
                   "value": "HUID789012"
+                },
+                {
+                  "key": "labour.mode",
+                  "value": "percentage_per_gram"
+                },
+                {
+                  "key": "labour.amount",
+                  "value": "10"
                 },
                 {
                   "key": "otherCharges",
@@ -585,6 +601,14 @@
                 {
                   "key": "name",
                   "value": "Updated Gold Ring"
+                },
+                {
+                  "key": "labour.mode",
+                  "value": "rupees_per_gram"
+                },
+                {
+                  "key": "labour.amount",
+                  "value": "150"
                 },
                 {
                   "key": "otherCharges",

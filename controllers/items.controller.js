@@ -76,6 +76,13 @@ exports.createItem = [
   body("netWeight").isNumeric().withMessage("Net weight must be a number"),
   body("source").notEmpty().withMessage("Source is required"),
   body("huid").notEmpty().withMessage("HUID is required"),
+  body("labour.mode")
+    .notEmpty()
+    .withMessage("Labour mode is required")
+    .isIn(["percentage_per_gram", "rupees_per_gram", "fixed_amount"])
+    .withMessage(
+      "Invalid labour mode. Must be one of: percentage_per_gram, rupees_per_gram, fixed_amount"
+    ),
   body("otherCharges")
     .optional()
     .isArray()
@@ -104,10 +111,23 @@ exports.createItem = [
         return res.status(400).json({ message: "Invalid category" });
       }
 
+      const body = { ...req.body };
+      const labour = {
+        mode: body["labour.mode"],
+        amount: body["labour.amount"],
+      };
+      delete body["labour.mode"];
+      delete body["labour.amount"];
+
+      if (body.otherCharges && typeof body.otherCharges === "string") {
+        body.otherCharges = JSON.parse(body.otherCharges);
+      }
+
       const item = new Item({
         _id: new mongoose.Types.ObjectId(),
         tenantId: req.tenantId,
-        ...req.body,
+        ...body,
+        labour,
         images: req.files ? req.files.map((file) => file.filename) : [],
       });
 
@@ -140,6 +160,16 @@ exports.updateItem = [
     .withMessage("Net weight must be a number"),
   body("source").optional().notEmpty().withMessage("Source cannot be empty"),
   body("huid").optional().notEmpty().withMessage("HUID cannot be empty"),
+  body("labour.mode")
+    .optional()
+    .isIn(["percentage_per_gram", "rupees_per_gram", "fixed_amount"])
+    .withMessage(
+      "Invalid labour mode. Must be one of: percentage_per_gram, rupees_per_gram, fixed_amount"
+    ),
+  body("labour.amount")
+    .optional()
+    .isNumeric()
+    .withMessage("Labour amount must be a number"),
   body("otherCharges")
     .optional()
     .isArray()
@@ -189,10 +219,25 @@ exports.updateItem = [
         }
       }
 
+      const body = { ...req.body };
+      if (body["labour.mode"] && body["labour.amount"]) {
+        const labour = {
+          mode: body["labour.mode"],
+          amount: body["labour.amount"],
+        };
+        delete body["labour.mode"];
+        delete body["labour.amount"];
+        body.labour = labour;
+      }
+
+      if (body.otherCharges && typeof body.otherCharges === "string") {
+        body.otherCharges = JSON.parse(body.otherCharges);
+      }
+
       const updatedItem = await Item.findOneAndUpdate(
         { _id: req.params.id, tenantId: req.tenantId },
         {
-          ...req.body,
+          ...body,
           images: req.files
             ? [...item.images, ...req.files.map((file) => file.filename)]
             : item.images,

@@ -15,6 +15,10 @@ const itemSchema = new mongoose.Schema(
     category: { type: String, required: true },
     grossWeight: { type: Number, required: true },
     netWeight: { type: Number, required: true },
+    labour: {
+      mode: { type: String, required: true },
+      amount: { type: Number, required: true },
+    },
     otherCharges: [
       {
         name: { type: String, required: true },
