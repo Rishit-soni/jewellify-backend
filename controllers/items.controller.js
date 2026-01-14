@@ -85,6 +85,16 @@ exports.createItem = [
     ),
   body("otherCharges")
     .optional()
+    .customSanitizer((val) => {
+      if (typeof val === "string") {
+        try {
+          return JSON.parse(val);
+        } catch (e) {
+          return val;
+        }
+      }
+      return val;
+    })
     .isArray()
     .withMessage("Other charges must be an array"),
   body("otherCharges.*.name")
@@ -172,6 +182,16 @@ exports.updateItem = [
     .withMessage("Labour amount must be a number"),
   body("otherCharges")
     .optional()
+    .customSanitizer((val) => {
+      if (typeof val === "string") {
+        try {
+          return JSON.parse(val);
+        } catch (e) {
+          return val;
+        }
+      }
+      return val;
+    })
     .isArray()
     .withMessage("Other charges must be an array"),
   body("otherCharges.*.name")
