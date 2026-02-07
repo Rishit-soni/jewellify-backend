@@ -133,13 +133,23 @@ exports.createItem = [
         body.otherCharges = JSON.parse(body.otherCharges);
       }
 
+      // Validate image count (max 5 images)
+      const imageCount = req.files ? req.files.length : 0;
+      if (imageCount > 5) {
+        return res.status(400).json({ 
+          message: "Maximum 5 images allowed per item",
+          currentCount: imageCount 
+        });
+      }
+
       const item = new Item({
         _id: new mongoose.Types.ObjectId(),
         tenantId: req.tenantId,
         ...body,
         labour,
-        images: req.files ? req.files.map((file) => file.filename) : [],
+        images: req.files ? req.files.map((file) => file.path) : [], // Use file.path for Cloudinary URLs
       });
+
 
       await item.save();
       res.status(201).json({ message: "Item created successfully", item });
@@ -254,16 +264,29 @@ exports.updateItem = [
         body.otherCharges = JSON.parse(body.otherCharges);
       }
 
+      // Validate total image count (existing + new images should not exceed 5)
+      const newImageCount = req.files ? req.files.length : 0;
+      const totalImageCount = item.images.length + newImageCount;
+      if (totalImageCount > 5) {
+        return res.status(400).json({ 
+          message: "Maximum 5 images allowed per item",
+          currentCount: item.images.length,
+          attemptingToAdd: newImageCount,
+          totalWouldBe: totalImageCount
+        });
+      }
+
       const updatedItem = await Item.findOneAndUpdate(
         { _id: req.params.id, tenantId: req.tenantId },
         {
           ...body,
           images: req.files
-            ? [...item.images, ...req.files.map((file) => file.filename)]
+            ? [...item.images, ...req.files.map((file) => file.path)] // Use file.path for Cloudinary URLs
             : item.images,
         },
         { new: true }
       );
+
 
       res.json({ message: "Item updated successfully", item: updatedItem });
     } catch (error) {
@@ -275,16 +298,89 @@ exports.updateItem = [
 
 exports.deleteItem = async (req, res) => {
   try {
-    const item = await Item.findOneAndDelete({
+    const item = await Item.findOne({
       _id: req.params.id,
       tenantId: req.tenantId,
     });
+    
     if (!item) {
       return res.status(404).json({ message: "Item not found" });
     }
+
+    // Delete images from Cloudinary if they exist
+    if (item.images && item.images.length > 0) {
+      try {
+        const { deleteImages } = require("../utils/cloudinary");
+        await deleteImages(item.images);
+        console.log(`Deleted ${item.images.length} images from Cloudinary for item ${item._id}`);
+      } catch (cloudinaryError) {
+        console.error("Error deleting images from Cloudinary:", cloudinaryError);
+        // Continue with item deletion even if Cloudinary deletion fails
+      }
+    }
+
+    // Delete the item from database
+    await Item.findOneAndDelete({
+      _id: req.params.id,
+      tenantId: req.tenantId,
+    });
+
     res.json({ message: "Item deleted successfully" });
   } catch (error) {
     console.error("Error deleting item:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+/**
+ * Delete a specific image from an item
+ * DELETE /api/items/:id/images
+ * Body: { imageUrl: "cloudinary_url" }
+ */
+exports.deleteItemImage = async (req, res) => {
+  try {
+    const { imageUrl } = req.body;
+
+    if (!imageUrl) {
+      return res.status(400).json({ message: "Image URL is required" });
+    }
+
+    const item = await Item.findOne({
+      _id: req.params.id,
+      tenantId: req.tenantId,
+    });
+
+    if (!item) {
+      return res.status(404).json({ message: "Item not found" });
+    }
+
+    // Check if the image exists in the item
+    const imageIndex = item.images.indexOf(imageUrl);
+    if (imageIndex === -1) {
+      return res.status(404).json({ message: "Image not found in this item" });
+    }
+
+    // Delete image from Cloudinary
+    try {
+      const { deleteImage } = require("../utils/cloudinary");
+      await deleteImage(imageUrl);
+      console.log(`Deleted image from Cloudinary: ${imageUrl}`);
+    } catch (cloudinaryError) {
+      console.error("Error deleting image from Cloudinary:", cloudinaryError);
+      // Continue with database update even if Cloudinary deletion fails
+    }
+
+    // Remove image from item's images array
+    item.images.splice(imageIndex, 1);
+    await item.save();
+
+    res.json({ 
+      message: "Image deleted successfully",
+      remainingImages: item.images.length,
+      item 
+    });
+  } catch (error) {
+    console.error("Error deleting image:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };

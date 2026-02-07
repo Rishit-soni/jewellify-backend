@@ -29,5 +29,11 @@ router.delete(
   authorizeRoles("Admin"),
   itemsController.deleteItem
 );
+router.delete(
+  "/:id/images",
+  authenticateToken,
+  authorizeRoles("Admin", "Manager"),
+  itemsController.deleteItemImage
+);
 
 module.exports = router;
